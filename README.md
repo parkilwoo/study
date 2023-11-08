@@ -3,6 +3,7 @@
 ## Pyhon
 1. [매직메소드 init과 new의 차이](#매직메소드-init과-new의-차이)
 2. [Namespace란?](#namespace란)
+3. [Iterator와 Generator](#iterator와-generator)
 
 ## Nginx
 1. [Nginx 사용시 server블록 설정이 겹칠 경우](#nginx-사용시-server블록-설정이-겹칠-경우)
@@ -203,5 +204,61 @@ int main() {
 ```
 
 Java에서는 주로 "Call by value"방식을 사용합니다.</br>
-그러나 참조 자료형(객체)을 다룰 때, 해당 객체에 대한 레퍼런스가 값에 의한 호출되지만 객체 내부의 상태는 수정할 수 있습니다.</br>
-이로써 일부 혼동이 발생할 수 있으므로 주의가 필요합니다.
+그러나 참조 자료형(객체)을 다룰 때, 해당 객체에 대한 레퍼런스가 값에 의한 호출되지만 객체 내부의 상태는 수정할 수 있습니다.
+</br>이로써 일부 혼동이 발생할 수 있으므로 주의가 필요합니다.
+
+
+### Iterator와 Generator
+	Iterator와 Generator는 모두 파이썬에서 순회 가능한(iterable)객체를 다루는데 사용되지만,
+	그 사용 방식과 목적은 약간 다릅니다. 
+
+**Iterator(반복자):**
+ - Iterator는 `__iter__()`와 `__next__()` 메서드를 구현하는 **객체**입니다.
+ - Iterator는 **반복 가능한(iterable) 객체**를 통해 값을 하나씩 순회(iterate)하며 가져옵니다.
+ - `__iter__()` 메서드는 Iterator 객체 자신(self)을 반환하고, `__next__()` 메서드는 다음 값을 반환하거나 StopIteration 예외를 발생시켜 순회를 종료합니다.
+ - 주로 사용자 정의 클래스를 만들어서 반복 가능한 객체에 대한 순회를 제어하고자 할 때 Itertor를 구현합니다.
+ - 데이터를 한 번에 모두 메모리에 로드하지 않고, 필요한 순간에 값을 생성하고 반환할 수 있어 **메모리에 효율적**입니다.
+```python
+class MyIterator:
+def __init__(self, max_value):
+	self.max_value = max_value
+	self.current = 0
+
+def __iter__(self):
+	return self
+
+def __next__(self):
+	if self.current < self.max_value:
+		result = self.current
+		self.current += 1
+		return result
+	else:
+		raise StopIteration
+
+my_iterator = MyIterator(3)
+for item in my_iterator:
+print(item)
+```
+
+**Generator(제너레이터):**
+ - Generator는 함수 안에서 `yield` 키워드를 사용하여 값을 반환하는 **함수**입니다.
+ - Generator 함수를 호출하면 제너레이터 객체가 반환되며, `yield` 키워드를 통해 값을 생성하고 함수 **실행 상태를 보존**합니다.
+ - Generator 함수는 실행 중 `yield`에서 **일시 중지**하고 호출자에게 값을 전달한 후 다음 호출 때 **이전 상태를 복원**하며 실행을 재개합니다.
+ - Generator는 간단하게 이터레이션을 구현하거나, **메모리에 효율적**이므로 대용량 데이터 스트림을 생성하고 처리하는데 사용됩니다.
+
+```python
+def my_generator(max_value):
+    current = 0
+    while current < max_value:
+        yield current
+        current += 1
+
+gen = my_generator(3)
+for item in gen:
+    print(item)
+```
+
+
+**Iterator**는 순회하고자 하는 데이터가 복잡하거나 사용자 정의 클래스로 만들어진 경우에 주로 사용됩니다.
+</br>
+**Generator**는 데이터 생성 및 순회가 간단하며, 데이터 양이 크거나 게으른(lazy)연산이 필요한 경우에 주로 사용됩니다.
