@@ -25,7 +25,7 @@
 1. [Call By Value, Call by Address란?](#call-by-value-call-by-address란)
 
 ## AI
-1. [Inference GPU 최적화 방법]
+1. [Inference GPU 최적화 방법](#inference-gpu-최적화-방법)
 
 --- 
 
