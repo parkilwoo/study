@@ -26,6 +26,7 @@
 
 ## AI
 1. [Inference GPU 최적화 방법](#inference-gpu-최적화-방법)
+2. [CNN 헤쳐보기](#cnn-헤쳐보기)
 
 ## Infra
 1. [MessageQueue 비교](#messagequeue-비교)
@@ -300,6 +301,6 @@ for item in gen:
 
 ### MessageQueue 비교
 
-* Redis: in-memory pub/sub 사용(성능 매우 우수), Celery와 호환성 좋음, 신뢰성이 낮음(ACK X), 영속성이 부족하고 손실 위험이 있음
+* Redis: in-memory pub/sub 사용(성능 매우 우수), Celery와 호환성 좋음, 신뢰성이 낮음(ACK X), 영속성이 부족하고 손실 위험이 있음, DLQ(Dead-letter queue) 지원 X -> 직접 구현 필요
 * RabbitMq: ACK를 이용한 신뢰성 보장, 다양한 exchagne 타입 지원, 우선순위 설정 가능, 영속성 가능, Celery 공식 지원 브로커, Redis에 비해 상대적으로 느림, 신뢰성이 중요한 작업(금융 처리, 중요 이벤트)
 * Kafka: 디스크기반 영속성 가능, 브로커/파티션/컨슈머 단위로 수평 확장 용이, 파티션 단위 순서 보장, batch와 parallel 처리, Celery와 직접 호환은 안됨, 로그 수집 및 실시간 스트리밍에 적합
