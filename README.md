@@ -33,6 +33,7 @@
 
 ## Infra
 1. [MessageQueue 비교](#messagequeue-비교)
+2. [Messaging Patterns](#messaging-patterns)
 --- 
 
 ### 매직메소드 init과 new의 차이
@@ -361,4 +362,28 @@ for item in gen:
 - 비유: 모든 단서들을 종합하여 '이건 어떤 클래스야'라고 결론을 내리는 탐정
 
 
+### Messaging Patterns
 
+**Message Queue**
+- Producer가 큐에 메시지를 넣고, Consumer가 꺼내서 처리하는 방식
+- 하나의 메시지를 '단 하나의' 소비자만 처리
+- 큐에 쌓이므로 소비하지 않으면 보존
+- 비동기 처리, 로드 밸런싱에 사용
+- RabbitMQ, SQS, Redis List
+- eg) 주문 처리 시스템: 주문 요청이 큐에 쌓이면 소비자가 순서대로 메시지를 하나씩 처리하며, 한 주문은 하나의 소비자만 처리한다.
+
+**Pub-Sub**
+- Publisher가 메시지를 보내면, Subscriber가 그 메시지를 받는 방식
+- 브로드캐스트로 하나의 메시지를 '모든' 구독자가 처리
+- 일반적으로는 메시지를 저장하지 않으며 구독자가 없으면 메시지 유실
+- 알림 서비스, 실시간 피드 전파, IoT
+- Redis pub-sub, NATS
+- eg) 채팅 메시지 전송: 1번 ws에서 발행된 메시지를 2번, 3번 ws에서 구독 후 메시지를 클라이언트에게 전송
+
+**Event Streaming**
+- 시간 순서대로 발생하는 이벤트 데이터를 지속적으로 기록(log)하고, 이 데이터를 필요한 소비자가 원하는 시점에 읽는 방식
+- 즉, 메시지를 실시간으로 흘리되, 저장도 하고 재처리도 가능한 pub-sub
+- 시간 순서 보장, 오프셋 조절, 재처리 및 재시작 처리 보장
+- 카프카의 경우 topic,partition과 consumer-group간에는 pub-sub 구조, consumber-group내 consumer끼리는 queue구조
+- 대규모 로그 수집, 데이터 파이프라인 등..
+- Kafka, AWS Kinesis
