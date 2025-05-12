@@ -30,7 +30,7 @@
 ## AI
 1. [Inference GPU 최적화 방법](#inference-gpu-최적화-방법)
 2. [CNN 헤쳐보기](#cnn-헤쳐보기)
-
+3. [모델 정확도 지표](#모델-정확도-지표)
 ## Infra
 1. [MessageQueue 비교](#messagequeue-비교)
 2. [Messaging Patterns](#messaging-patterns)
@@ -387,3 +387,20 @@ for item in gen:
 - 카프카의 경우 topic,partition과 consumer-group간에는 pub-sub 구조, consumber-group내 consumer끼리는 queue구조
 - 대규모 로그 수집, 데이터 파이프라인 등..
 - Kafka, AWS Kinesis
+
+### 모델 정확도 지표
+
+**Precision**
+- 정밀도, 모델이 예측한것 중 정답인 비율
+- 정확하게 골라내는 능력
+- Precision이 높으면 예측한건 대부분 맞다(but 많이는 예측하지 못한다)
+
+**Recall**
+- 재현율, 실제 정답 대비 모델이 예측한 비율
+- 답을 놓치지 않는 능력
+- Recall이 높으면 모델이 예측한 비율이 높음(but 틀린 예측을 할 수도 있다)
+
+**F1-Score**
+- Precision과 Recall의 균형 점수
+- 공식: 2 * (P * R) / (P + R)
+- 두 개의 값 모두가 높아야 높은 점수가 나온다.
