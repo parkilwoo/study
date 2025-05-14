@@ -7,6 +7,7 @@
 
 ## DataBase
 1. [트랜잭션 격리수준](#트랜잭션-격리수준)
+2. [Redis 메모리 관리 정책](#redis-메모리-관리-정책)
 
 ## Nginx
 1. [Nginx 사용시 server블록 설정이 겹칠 경우](#nginx-사용시-server블록-설정이-겹칠-경우)
@@ -31,6 +32,7 @@
 1. [Inference GPU 최적화 방법](#inference-gpu-최적화-방법)
 2. [CNN 헤쳐보기](#cnn-헤쳐보기)
 3. [모델 정확도 지표](#모델-정확도-지표)
+
 ## Infra
 1. [MessageQueue 비교](#messagequeue-비교)
 2. [Messaging Patterns](#messaging-patterns)
@@ -404,3 +406,32 @@ for item in gen:
 - Precision과 Recall의 균형 점수
 - 공식: 2 * (P * R) / (P + R)
 - 두 개의 값 모두가 높아야 높은 점수가 나온다.
+
+### Redis 메모리 관리 정책
+	Redis가 사용하는 메모리가 maxmemory로 지정한 크기보다 커지면 Redis는 사용자가 지정
+	Eviction 정책에 따라 저장되어 있는 데이터를 제거한 후, 새로운 데이터를 저장한다.
+
+**noeviction**:
+- maxmemory에 도달한 상태에서 새로운 데이터를 저장하려하면 기존 데이터를 지우지 않고 에러를 발생한다.(default 설정)
+
+**LRU(Least Recently Used)**:
+- LRU 알고리즘을 사용하여 가장 오래된 데이터부터 삭제한다. 
+- LRU 알고리즘은 '모든 키를 접근 순서대로 정렬'해야하는 문제가 있어 메모리 사용량이 높다. 
+- Redis에서는 `maxmemory-samples` 옵션에서 지정한 수의 키로 샘플링하여 LRU 알고리즘의 근사치를 계산한다. 샘플 수가 많을수록 메모리를 많이 사용하지만 알고리즘의 정밀도가 올라간다.
+- `allkeys-lru`: 모든 키를 대상으로 LRU 알고리즘 적용하여 삭제
+- `volatile-lru`: `EXPIRE SET(만료 기간이 설정된 키)`안에 있는 키를 대상으로 LRU 알고리즘을 적용하여 키를 삭제
+
+**Random**:
+- 무작위로 데이터를 삭제한다.
+- `allkeys-random`: 모든 키를 대상으로 무작위로 데이터를 삭제
+- `volatile-random`: `EXPIRE SET`안에 있는 키를 대상으로 무작위로 데이터를 삭제
+
+**TTL**:
+- TTL(Time To Live)이 짧은 데이터부터 삭제한다.
+- `volatile-ttl`: `EXPIRE SET`안에 있는 키를 대상으로 TTL이 짧은 데이터부터 삭제
+
+**LFU(Least Frequently Used)**:
+- Redis 4.0에서 추가된 정책으로 LFU 알고리즘을 사용하여 가장 빈도수가 적은 데이터부터 삭제하한다.
+- LRU 알고리즘과는 달리 최근에 추가된 데이터여도 자주 사용되지 않는다면 제거 대상이 될 수 있다.
+- `allkeys-lfu`: 모든 키를 대상으로 LFU 알고리즘을 적용하여 키를 삭제
+- `volatile-lfu`: `EXPIRE SET`안에 있는 키를 대상으로 LFU 알고리즘을 적용하여 키를 삭제
