@@ -8,6 +8,7 @@
 ## DataBase
 1. [트랜잭션 격리수준](#트랜잭션-격리수준)
 2. [Redis 메모리 관리 정책](#redis-메모리-관리-정책)
+3. [Redis replication process](#redis-replication-process)
 
 ## Nginx
 1. [Nginx 사용시 server블록 설정이 겹칠 경우](#nginx-사용시-server블록-설정이-겹칠-경우)
@@ -435,3 +436,44 @@ for item in gen:
 - LRU 알고리즘과는 달리 최근에 추가된 데이터여도 자주 사용되지 않는다면 제거 대상이 될 수 있다.
 - `allkeys-lfu`: 모든 키를 대상으로 LFU 알고리즘을 적용하여 키를 삭제
 - `volatile-lfu`: `EXPIRE SET`안에 있는 키를 대상으로 LFU 알고리즘을 적용하여 키를 삭제
+
+### Redis replication process
+
+**전체 흐름 요약**
+```
+1. Slave가  Master에게 연결 요청
+2. Master가 RDB 스냅샷 생성 후 Slave에게 전달 (Full Sync)
+3. 동기화 중 발생하는 명령어는 Buffer에 저장
+4. RDB 전송 완료 후, Buffer에 저장된 명령어 전송
+5. 이후엔 실시간으로 명령어를 지속 전송 (Command Replication)
+```
+
+**단계별 설명**
+
+1. Slave가 Master에게 연결 요청
+* Salve Redis 인스턴스에서 `SLAVEOF <master-ip> <master-port>` 명령어를 실행하거나 설정 파일에서 지정
+* Slave는 Master에게 TCP 연결을 요청하고 `PSYNC` 또는 `SYNC` 명령어 보냄
+
+2. Master가 RDB 스냅샷 생성
+* Master는 현재 메모리 상태를 `.rdb` 파일 형태로 덤프하여 스냅샷 생성
+* 이 스냅샷은 현재까지의 전체 데이터를 담고 있는 일종의 "데이터 복사본"
+
+3. Slave에게 RDB 전송 (Full Sync)
+* Master는 위에서 만든 RDB 파일을 TCP를 통해 Slave로 전송
+* Slave는 이 RDB를 받아서 자신의 메모리를 초기화 후 그대로 로드
+
+4. 동기화중 명령어는 Buffer에 저장
+* Master는 RDB를 생성하는 동안에도 명령어가 계속 들어올 수 있으므로, 이 명령어들을 `replication buffer`에 임시 저장해둠.
+
+5. RDB 로딩 후, Buffer의 명령도 전송
+* Slave가 RDB를 모두 로딩하면, Master는 그 사이에 쌓인 명령어들을 Slave에게 전송해서 `완전 동기화` 상태로 만듬
+
+6. 실시간 복제 시작 (Incremental Sync)
+* 이제부터 Master는 자신에게 들어오는 모든 쓰기 명령어(SET, DEL 등..)를 실시간으로 문자열 형식으로 Slave에게 전송
+* Slave는 그 명령어를 그대로 실행
+
+**PSYNC(Partial Sync) vs SYNC(Full Sync)**
+* `SYNC`: Redis 2.8 이전 버전에서 사용 or 처음 연결시 전체 복제 요청(Full Sync)
+* `PSYNC`: Redis 2.8 이후 버전부터 지원되는 부분 복제 프로토콜(Partial Sync)
+* 처음 복제이거나 Master가 replication backlog를 보존하지 못했으면 -> `Sync`사용
+* 이전에 한 번 복제된 Slave가 다시 연결되면 -> `PSYNC <replication_id> <offset>`사용
