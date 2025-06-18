@@ -257,7 +257,6 @@ Java에서는 주로 "Call by value"방식을 사용합니다.</br>
  - Iterator는 **반복 가능한(iterable) 객체**를 통해 값을 하나씩 순회(iterate)하며 가져옵니다.
  - `__iter__()` 메서드는 Iterator 객체 자신(self)을 반환하고, `__next__()` 메서드는 다음 값을 반환하거나 StopIteration 예외를 발생시켜 순회를 종료합니다.
  - 주로 사용자 정의 클래스를 만들어서 반복 가능한 객체에 대한 순회를 제어하고자 할 때 Itertor를 구현합니다.
- - 데이터를 한 번에 모두 메모리에 로드하지 않고, 필요한 순간에 값을 생성하고 반환할 수 있어 **메모리에 효율적**입니다.
 ```python
 class MyIterator:
 def __init__(self, max_value):
